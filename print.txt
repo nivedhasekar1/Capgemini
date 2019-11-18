@@ -1,0 +1,173 @@
+package com.cap.dao;
+
+import java.sql.Connection;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import java.util.List;
+
+import com.cap.bean.BankDetails;
+import com.cap.bean.BankTransactions;
+
+public class BankDaoImp1 implements BankDao {
+	Connection conn=DBConnect.getConnection();
+	@Override
+	public long createAccount(BankDetails bankdetails) {
+		
+		long accNum=0;
+     try{
+		PreparedStatement stmt=conn.prepareStatement("insert into BankAcc values(SamSeq.nextVal,?,?,?,?,?)");
+		stmt.setString(1, bankdetails.getCustName());
+		stmt.setString(2,  bankdetails.getCustBranch());
+		stmt.setLong(3, bankdetails.getCustMobNum());
+		stmt.setString(4,  bankdetails.getAccType());
+		stmt.setLong(5, bankdetails.getAccBal());
+		
+		int result=stmt.executeUpdate();
+        if(result>0){
+        	PreparedStatement stmt1= conn.prepareStatement("select SamSeq.currval from dual");
+        	ResultSet rs=stmt1.executeQuery();
+        	rs.next();
+        	accNum=rs.getInt(1);        	
+            System.out.println("Account created Successfully");
+        }
+        else{
+            System.out.println("Create a Account");
+        }
+      }catch(Exception e){
+    	  e.printStackTrace();
+       }
+	return accNum;
+	
+	}
+
+	@Override
+	public long showDetails(long accNum) {
+		long bal=0;
+		PreparedStatement stst;
+		try{		
+			stst = conn.prepareStatement("select ACCBAL from BankAcc where ACCNO=?");
+			stst.setLong(1, accNum);
+			 ResultSet rs=stst.executeQuery();
+	            rs.next();
+	            bal=rs.getLong(1);
+	        } catch (SQLException  e) {
+	        
+	            e.printStackTrace();
+	        }
+	        return bal;
+		}
+	@Override
+	public long depositDetails(long accNum, long depAcc) {
+		
+		PreparedStatement stst1,stst2;
+		int balance=0,rs1=0;
+		try{
+			Connection conn=DBConnect.getConnection();
+			stst1 = conn.prepareStatement("select AccBal from BankAcc where AccNo=?");
+			stst1.setLong(1, accNum);
+			ResultSet rs=stst1.executeQuery();
+			rs.next();
+			balance=(int) (rs.getInt(1)+ depAcc);
+			stst2 = conn.prepareStatement("update BankAcc set AccBal=? where AccNo=?");
+			stst2.setInt(1,balance);
+			stst2.setLong(2, accNum);
+			rs1=stst2.executeUpdate();
+		} catch(SQLException  e){
+			e.printStackTrace();
+			
+		}
+		return balance;
+	}
+
+	@Override
+	public long withdrawDetails(long accNum, long withDraw) {
+		
+		PreparedStatement stst1,stst2;
+		int balance=0;
+		try{
+			Connection conn=DBConnect.getConnection();
+			stst1 = conn.prepareStatement("select AccBal from BankAcc where AccNo=?");
+			stst1.setLong(1, accNum);
+			ResultSet rs=stst1.executeQuery();
+			rs.next();
+			balance=(int) (rs.getLong(1) - withDraw);
+			stst2 = conn.prepareStatement("update BankAcc set AccBal=? where AccNo=?");
+			stst2.setInt(1,balance);
+			stst2.setLong(2, accNum);
+		int rs1=stst2.executeUpdate();
+		} catch(SQLException e){
+			e.printStackTrace();
+			
+		}
+		return balance;
+	}
+	@Override
+	public long fundTransfer(long accNum4, long accNum5, long fundTrans) {
+        PreparedStatement stat, stat2,stat3,stat4;
+        long accountNumber = 0,accountNumber1 = 0;
+        try {
+            stat = conn.prepareStatement("select AccBal from BankAcc where AccNo=?");
+            stat.setLong(1, accNum4);
+            ResultSet rs = stat.executeQuery();
+            rs.next();
+            accountNumber = rs.getLong(1)-fundTrans;
+            stat2 = conn.prepareStatement("update BankAcc set AccBal=? where AccNo=?");
+            stat2.setLong(1, accountNumber);
+            stat2.setLong(2, accNum4);
+            stat2.executeUpdate();
+           
+            stat3 = conn.prepareStatement("select AccBal from BankAcc where AccNo=?");
+            stat3.setLong(1, accNum5);
+            ResultSet rs2 = stat3.executeQuery();
+            rs2.next();
+            accountNumber1 = rs2.getLong(1)+fundTrans;
+            stat4 = conn.prepareStatement("update BankAcc set AccBal=? where AccNo=?");
+            stat4.setLong(1, accountNumber1);
+            stat4.setLong(2, accNum5);
+            stat4.executeUpdate();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return accountNumber1;
+    }
+
+	 public void printTransactions() {
+	      
+         BankTransactions bt=new BankTransactions();  
+        
+            Connection conn=DBConnect.getConnection();
+            try {
+                 PreparedStatement stmt=conn.prepareStatement("select * from transcations");
+                ResultSet s= stmt.executeQuery();
+                while(s.next())
+                {
+                long transId=s.getLong(1);
+                int fromAcc=s.getInt(2);
+                int toAcc=s.getInt(3);
+                int oldBal=s.getInt(4);
+                int newBal=s.getInt(5);
+                String type=s.getString(6);
+                bt.setTransId(transId);
+                bt.setFromAcc(fromAcc);
+                bt.setToAcc(toAcc);
+                bt.setTransOldBal(oldBal);
+                bt.setTransNewBal(newBal);
+                bt.setTransType(type);
+                System.out.println(bt);
+          
+                }
+            }
+          
+            catch (Exception e) {
+              
+                e.printStackTrace();
+            }
+      
+    }
+   
+}

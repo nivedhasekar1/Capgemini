@@ -1,0 +1,38 @@
+SQL*Plus: Release 11.2.0.2.0 Production on Sat Sep 14 11:28:00 2019
+
+Copyright (c) 1982, 2010, Oracle.  All rights reserved.
+
+SQL> conn system/root;
+Connected.
+
+SQL> create user nivedha identified by nivi20;
+
+User created.
+
+SQL> grant connect,resource to nivedha;
+
+Grant succeeded.
+
+SQL> conn nivedha/nivi20;
+Connected.
+SQL>
+SQL*Plus: Release 11.2.0.2.0 Production on Sat Sep 14 11:59:19 2019
+
+Copyright (c) 1982, 2010, Oracle.  All rights reserved.
+
+SQL> conn nivedha/nivi20;
+Connected.
+SQL> show user
+USER is "NIVEDHA"
+SQL> create table employee(eid number(10),ename varchar2(20),esal number(15));
+
+Table created.
+
+SQL> desc employee;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ EID                                                NUMBER(10)
+ ENAME                                              VARCHAR2(20)
+ ESAL                                               NUMBER(15)
+
+SQL>
